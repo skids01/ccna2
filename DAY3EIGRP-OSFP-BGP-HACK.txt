@@ -1,0 +1,104 @@
+task 3 how to be a real six fig network engineer:
+
+step 1
+
+@A1
+config t
+int e0/0
+switchport mode access
+switchport access vlan 10
+end
+
+sh vlan brief
+
+@A2
+config t
+int e1/0
+switchport mode access
+switchport access vlan 10
+end
+
+sh vlan brief
+
+
+step 2 learn how tfind the gateway: OH syet:
+job interview:
+cisco: sh ip route
+microsoft: router print
+
+linux- netstat -rn
+
+
+task 4: CISCO VS MS VS REDHAT VS UBUNTU
+
+cisco: ip route 0.0.0.0 
+
+
+
+
+R1: maging Drother!
+config t
+int looback 1
+ip add 1.1.1.1 255.255.255.255
+router ospf 1
+router-id 1.1.1.1
+network 1.1.1.1 0.0.00 area 0
+network 10.1.1.0 0.0.0.3 area 0
+interface e1/0
+ip ospf priority 0
+end
+
+
+
+config t
+router bgp 1
+bgp router-id 207.7.7.1
+bgo log-neighbor-changes
+neighbor 209.9.9.2 remote-as 3
+neighbor 207.7.7.2 remote-as 2
+neighbor 208.8.8.4 remote-as 45
+network 209.9.9.0 mask 255.255.255.0
+network 208.8.8.0 mask 255.255.255.0
+network 207.7.7.0 mask 255.255.255.0
+network 10.1.1.0 mask 255.255.255.252
+end
+
+
+
+OSI CYBERSECURITY:
+PHYSICAL LAYER: WIRED, WIFI FOC.
+
+L2: macaddress:
+L3: nmap -sP 10.3.3.0/24
+L4: Ports address: 135 and 445
+
+    3way handshake:
+
+	hacker ---- SYN ----> victim
+      	      <---- ACK -----
+ 	      ---- SYN/ACK---->
+	    <---- ESTABLISHED---->
+
+L5: ATTACKING PORT 139 or IPC$ SMB/SERVERMESSAGEBLOCK session
+
+cmd
+ping 10.3.3.121
+	net use \\10.3.3.142\ipc$
+	net use x: /delete
+	net use x: \\10.3.3.142\c$
+
+	netstat -n -p tcp | findstr ":445"
+
+L6: PRESENTATION
+
+	virus/malware: .exe, .vbs, .bat, .py
+
+	
+
+L7: APPLICATION: explorer.exe
+
+
+
+
+
+
