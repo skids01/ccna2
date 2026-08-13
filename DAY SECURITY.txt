@@ -1,0 +1,339 @@
+FIREWALL
+
+!@IR-ELASTICSYS VMWAREa
+
+root
+C1sc0123
+ip addr
+
+systemct1 restart elasticsearch.service
+
+
+ping 192.168.102.133
+
+edge browser:
+http://192.168.102.133:5601
+
+credentials:
+admin
+C1sc0123
+
+
+
+FW-VPN F1k - @lagay sa vmware
+
+en
+conf t
+no logging console
+int g2
+no shut
+ip add 192.168.102.11 255.255.255.0
+end
+
+sh ip int brief
+
+
+TASK 1: NOC L1 Analyst vs Soc L1 analyst:
+	 			monitoring/50-60k
+TASK 2: CISCO cyber security
+C: Confidentiality - data must be encrypted
+
+A: availability
+
+i: integrity: data must not be altered
+		hashcode: md5 or sha256
+
+
+
+
+
+
+labexam: ENCRYPT using publickeys:
+
+!CREAT a public key:
+conf t
+ip domain name keykeymo
+crypto key generate rsa modulus 1024
+
+
+
+
+TASK2:HOW TO START A CYBER SECURITY CAREER
+
+secureMind -> secureENV -> secureNET
+
+config t
+NO ip access-list standard NOPORN
+ip access-list standard NOPORN
+DENY 66.254.0.0 0.0.255.255
+deny 161.49.0.0 0.0.255.255
+DENY 104.21.0.0 0.0.255.255
+DENY 68.235.0.0 0.0.255.255
+DENY 104.17.0.0 0.0.255.255
+DENY 88.208.0.0 0.0.255.255
+DENY 208.77.0.0 0.0.255.255
+DENY 172.67.0.0 0.0.255.255
+Permit Any
+Int Gi 1
+ ip access-group NOPORN in
+end
+
+
+
+UNBLOCK THE PORNSITES.
+config t
+Int Gi 1
+No  ip access-group NOPORN in
+end
+
+Task1.2: block admu.edu.ph, dlsu.edu.ph, ccp.edu.ph, ue.edu.ph
+
+config t
+NO ip access-list standard NOISKUL
+ip access-list standard NOISKUL
+DENY   172.67.14.0   0.0.255.255
+DENY   50.6.160.0   0.0.255.255
+DENY   184.168.125.0   0.0.255.255
+DENY   155.137.92.0   0.0.255.255
+DENY   104.22.36.0   0.0.255.255
+Permit Any
+Int Gi 1
+ no ip access-group NOISKUL in
+end
+
+Unblock school
+
+config t
+int Gi 1
+No ip access-group NOISKUL in
+end
+
+
+
+config t
+NO ip access-list standard NOTORS
+ip access-list standard NOTORS
+DENY   162.159.0.0   0.0.255.255
+DENY   104.21.0.0   0.0.255.255
+DENY   172.67.0.0   0.0.255.255
+DENY   84.32.0.0   0.0.255.255
+DENY   76.223.0.0   0.0.255.255
+DENY   13.248.0.0   0.0.255.255
+DENY   104.26.0.0   0.0.255.255
+DENY   95.211.0.0   0.0.255.255
+Permit Any
+Int Gi 1
+ ip access-group NOTORS in
+end
+
+ping cis
+
+config t
+int Gi 1
+No ip access-group NOTORS in
+end
+
+
+conf t
+Int Gi 1
+No ip access-group NOTORS in
+end
+
+
+Task 4: HOW TO PROECT YOUR FUTURE CRIMINAL BUSINESS.
+
+how to configure firewall policy:
+
+PROTOCOL   		HACKER   	VICTIM   		PORT(if needed)
+tcp,udp,icmp,IP		any		bet10/bet11.com
+
+
+bet10.com 80, 443
+bet11.com 80, 443
+
+config t
+NO ip access-list extended FW1
+ip access-list extended FW1
+permit tcp any host bet10.com eq 80
+permit tcp any host bet10.com eq 443
+permit tcp any host bet11.com eq 80
+permit tcp any host bet11.com eq 443
+interface gi 3
+ip access-group WF1 in
+do sh ip access-list FW1
+
+UNBLOCK:
+conf t
+interface gi 3
+no ip access-group FW1 in
+do sh ip access-list FW1
+
+
+POLICY3
+
+how to configure firewall policy: APOYPADER3
+
+bet10.com HTTPS, PING
+BET11.com DNS DNS
+
+config t
+NO ip access-list extended APOYPADER3
+ip access-list extended APOYPADER3
+permit tcp any host bet10.com eq 80
+permit ICMP any host bet10.com eq 443
+permit tcp any host bet11.com eq 2000
+permit tcp any host bet11.com eq 5060
+interface gi 3
+ip access-group APOYPADER3 in
+do sh ip access-list APOYPADER3
+
+
+how to configure firewall policy: APOYPADER3
+
+bet10.com SSH 22, TELNET 23, HTTPS 80, PING
+BET11.com HTTPS 443, SCCP 2000, H323 1720, SIP 5060 ==
+
+config t
+NO ip access-list extended APOYPADER3
+ip access-list extended APOYPADER3
+permit tcp any host bet10.com eq 22
+permit ICMP any host bet10.com eq
+permit tcp any host bet10.com eq 23
+permit tcp any host bet10.com eq 80 
+permit tcp any host bet11.com eq 443
+permit tcp any host bet11.com eq 2000
+permit tcp any host bet11.com eq 1720
+permit tcp any host bet11.com eq 5060
+interface gi 3
+ip access-group APOYPADER3 in
+do sh ip access-list APOYPADER3
+
+
+HIDING BEHIND A FIREWALL PROXY: 8080 8443:
+
+ REAL IP REAL PORT 		FAKE IP FAKE PORT:
+ 192.168.103.10 80,443		208.8.8.69 80 8443
+ 192.168.103.11 80,443		208.8.8.69 443 8080
+
+config t
+no access-list 8
+access-list 8 permit host 192.168.103.10
+access-list 8 permit host 192.168.103.11
+ip host betlog.com 208.8.8.69
+Int Gi 3
+ ip nat Inside
+Int gi 1
+ ip nat Outside
+IP Nat inside source static tcp 192.168.103.10 80 208.8.8.69 80
+IP Nat inside source static tcp 192.168.103.10 443 208.8.8.69 8443
+IP Nat inside source static tcp 192.168.103.11 80 208.8.8.69 8080
+IP Nat inside source static tcp 192.168.103.11 443 208.8.8.69 443
+IP nat inside source list 8 int gi 1 Overload
+end
+show ip nat translation
+
+
+conf t
+int gi 3
+no ip access-group APOYPADER3 in
+do sh run int gi 3
+
+
+
+USING NETWORK TIME SERVER:
+
+config t
+ntp server 216.239.35.0
+end
+sh ntp assoc
+sh ntp status
+show ntp associations detail
+
+
+CAFE:FACE:FAFA::3131
+fafa:dada:dede:caca::3131/64
+
+
+cafe:baba:fe::/44
+
+
+
+000a:000c:0000:0000:0000:0000:0000:0000/64 = a:c::
+::
+fe80::a:0:0:f
+
+2002:6500:0:3000::
+::1
+
+
+
+
+BINARY
+
+		1024 		256 		32 		512		8192
+
+convert 	2r12		2r8		2r5		2r9		2r13
+add		/48+12		/48+8		/48+5		49+9		/48+13
+		/60		/56		/53		/57		/61
+
+		8 4 2 1 	8 4 2 1		8 4 2 1		8 4 2 1
+
+iFingerMo: 3rdsil1		2ndsi1		2ndSi8		
+
+
+
+
+
+	SMpasig				SMlibis			
+	64office			1024office		128offic
+
+
+
+	0000				0000			0000
+	0400				0040			0400
+	0800				0080			0800
+	0c00				00c0			
+	1000				0100			
+
+
+
+
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
