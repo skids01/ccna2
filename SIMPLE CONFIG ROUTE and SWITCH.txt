@@ -1,0 +1,40 @@
+config t
+vlan 10
+   name WIFI
+vlan 20
+   name MGR
+vlan 30
+   name HR
+vlan 40
+   name OPS
+
+Int range Fa 0/2
+  switchport mode access
+  switchport access vlan 10  
+Int Fa 0/3
+  switchport mode access
+  switchport access vlan 20
+Int Fa 0/4-5
+  switchport mode access
+  switchport access vlan 30  
+Int Fa 0/6-9
+  switchport mode access
+  switchport access vlan 40    
+end
+
+
+
+
+IP address: 192.168.1.1 255.255.255.0
+exclude address: 192.168.1.1 - 192.168.1.10
+Gateway: 192.168.1.1
+DNS Server: 192.168.1.1
+DHCP Server: Poolname
+
+
+
+
+working knowledge of  Cisco
+DNS, DHCp,subnets, vlans 
+
+
