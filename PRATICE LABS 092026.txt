@@ -1,0 +1,263 @@
+
+
+
+
+
+
+
+
+
+**Switch Core taas**
+configure terminal
+hostname COREtaas-31
+enable secret pass
+service password-encryption
+no logging console
+no ip domain-lookup
+line console 0
+password pass
+login
+exec-timeout 0 0
+line vty 0 14
+password pass
+login
+exec-timeout 0 0
+int vlan 1
+no shutdown
+ip add 10.31.1.2 255.255.255.0
+description MGMTDATA
+int vlan 10
+no shutdown
+ip add 10.31.10.2 255.255.255.0
+description HRDEP
+
+int vlan 20
+no shutdown
+ip add 10.31.20.2 255.255.255.0
+description SERV
+
+int vlan 99
+no shutdown
+ip add 10.31.99.2 255.255.255.0
+description Transit_to_FW
+
+end
+
+
+**Switch Core baba**
+configure terminal
+hostname COREbaba-31
+enable secret pass
+service password-encryption
+no logging console
+no ip domain-lookup
+line console 0
+password pass
+login
+exec-timeout 0 0
+line vty 0 14
+password pass
+login
+exec-timeout 0 0
+int vlan 1
+no shutdown
+ip add 10.31.1.4 255.255.255.0
+description MGMTDATA
+int vlan 10
+no shutdown
+ip add 10.31.10.4 255.255.255.0
+description HRDEP
+
+int vlan 20
+no shutdown
+ip add 10.31.20.4 255.255.255.0
+description SERV
+
+int vlan 99
+no shutdown
+ip add 10.31.99.4 255.255.255.0
+description TRANSIT_IP_CORE_BABA
+
+end
+
+
+
+***Switch Core taas/Switch Core baba***
+conf t
+int range g1/0/22-24
+no shutdown
+switchport trunk Encap Dot1Q
+switchport mode trunk
+end
+
+***Switch Core taas/Switch Core baba***
+conf t
+int range g1/0/22-24
+channel-group 1 mode active
+channel-protocol lacp
+end
+
+
+****************SWITCH HR*********
+
+**Switch Core baba**
+Switch Core baba# conf t
+Switch Core baba(config)# interface g1/0/1
+Switch Core baba(config-if)# description LINK_TO_HR_SWITCH
+Switch Core baba(config-if)# switchport trunk encapsulation dot1q
+Switch Core baba(config-if)# switchport mode trunk
+Switch Core baba(config-if)# no shutdown
+Switch Core baba(config-if)# end
+
+
+**Switch HR**
+configure terminal
+hostname COREhr-31
+enable secret pass
+service password-encryption
+no logging console
+no ip domain-lookup
+
+line console 0
+password pass
+login
+exec-timeout 0 0
+
+line vty 0 14
+password pass
+login
+exec-timeout 0 0
+
+! 1. Gagawa tayo ng VLAN 10 sa database ng switch
+vlan 10
+ name HRDEP
+exit
+
+! 2. I-configure ang Trunk port na galing kay Core baba
+conf t
+interface g1/0/1
+ description LINK_TO_CORE_BABA
+ switchport mode trunk
+ no shutdown
+end
+
+**Switch HR**
+conf t
+interface range g1/0/2
+switchport mode access
+switchport access vlan 10
+no shutdown
+end
+
+
+NOTE: kung static or non DHCP assign ng ip sa pc. since 
+
+ip: 10.31.10.11
+subnetmask 255.255.255.0
+default getway 10.31.10.1
+
+
+********SERVER*********
+conf t
+interface gigabitethernet 1/0/5
+ description LINK_TO_HR_SERVER
+ switchport mode access
+ switchport access vlan 20
+ no shutdown
+exit
+
+assign sa server
+IP Address: 10.31.20.10
+Subnet Mask: 255.255.255.0
+Default Gateway: 10.31.20.4
+
+
+***********FIREWALL*******
+
+
+****COREBABA****
+conf t
+int g1/0/2
+description LINK_TO_FIREWALL_INSIDE
+switchport mode access
+switchport access vlan 99
+no shut
+exit
+
+
+conf t 
+ip route 0.0.0.0 0.0.0.0 10.31.99.1
+end
+
+
+**FW**
+
+ciscoasa> enable
+ciscoasa# configure terminal
+
+! 1. I-configure ang Inside Interface (Papunta kay Core baba)
+interface gigabitethernet 1/1
+ nameif inside
+ security-level 100
+ ip address 10.31.99.1 255.255.255.0
+ no shutdown
+exit
+
+! 2. I-configure ang Outside Interface (Papunta sa Router)
+interface gigabitethernet 1/2
+ nameif outside
+ security-level 0
+ ip address 192.168.1.2 255.255.255.0
+ no shutdown
+exit
+
+! 3. Sabihan ang Firewall kung nasaan ang mga internal networks mo (HR at Server)
+route inside 10.31.10.0 255.255.255.0 10.31.99.2
+route inside 10.31.20.0 255.255.255.0 10.31.99.2
+
+! 4. Maglagay ng Default Route patungong Router IP naman sa labas
+route outside 0.0.0.0 0.0.0.0 192.168.1.1
+
+end
+
+
+
+
+
+conf t
+interface gigabitethernet 1/0/6
+switchport trunk encapsulation dot1q
+switchport mode trunk
+no shutdown
+
+conf t
+interface gigabitethernet 1/0/1  
+switchport mode trunk
+no shutdown
+end
+
+enable
+
+conf t
+route inside 10.31.10.0 255.255.255.0 10.31.99.4
+route inside 10.31.20.0 255.255.255.0 10.31.99.4
+end
+
+
+
+
+
+configure terminal
+interface g1/0/6
+switchport mode access
+switchport access vlan 10
+no shutdown
+end
+
+
+
+configure terminal
+interface gigabitethernet 1/0/1
+switchport mode trunk
+no shutdown
+end
