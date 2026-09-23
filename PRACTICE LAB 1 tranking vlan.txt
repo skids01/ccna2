@@ -1,0 +1,716 @@
+
+NAT
+ACL
+DNS
+FTP
+
+
+
+
+
+
+
+********SWBKP(switch back up)***********
+configure terminal
+hostname SWBKP
+enable secret pass
+service password-encryption
+no logging console
+no ip domain-lookup
+line console 0
+password pass
+login
+exec-timeout 0 0
+line vty 0 14
+password pass
+login
+exec-timeout 0 0
+
+int vlan 1
+no shutdown
+ip add 10.31.1.2 255.255.255.0
+description MGMTDATA
+
+int vlan 10
+no shutdown
+ip add 10.31.10.2 255.255.255.0
+description SERV
+
+int vlan 20
+no shutdown
+ip add 10.31.20.2 255.255.255.0
+description FW
+
+int vlan 30
+no shutdown
+ip add 10.31.30.2 255.255.255.0
+description HR
+
+int vlan 40
+no shutdown
+ip add 10.31.40.2 255.255.255.0
+description ACCNT
+
+int vlan 50
+no shutdown
+ip add 10.31.50.2 255.255.255.0
+description OPERATION
+
+end
+
+conf t
+
+vlan 1
+name MGMT_DATA
+exit
+
+vlan 10
+name SERVER_ZONE
+exit
+
+
+vlan 20
+name FW
+exit
+
+vlan 30
+name HR_DEP
+exit
+
+vlan 40
+name ACCNT_DEP
+exit
+
+
+vlan 50
+name OPS_DEP
+exit
+
+end
+
+*************************************
+
+
+***********SWCORE - core switch******
+configure terminal
+hostname SWCORE
+enable secret pass
+service password-encryption
+no logging console
+no ip domain-lookup
+line console 0
+password pass
+login
+exec-timeout 0 0
+line vty 0 14
+password pass
+login
+exec-timeout 0 0
+
+int vlan 1
+no shutdown
+ip add 10.31.1.4 255.255.255.0
+description MGMTDATA
+
+
+int vlan 10
+no shutdown
+ip add 10.31.10.4 255.255.255.0
+description SERV
+
+int vlan 20
+no shutdown
+ip add 10.31.20.4 255.255.255.0
+description FW
+
+int vlan 30
+no shutdown
+ip add 10.31.30.4 255.255.255.0
+description HR
+
+int vlan 40
+no shutdown
+ip add 10.31.40.4 255.255.255.0
+description ACCNT
+
+int vlan 50
+no shutdown
+ip add 10.31.50.4 255.255.255.0
+description OPERATION
+
+end
+
+
+conf t
+
+vlan 1
+name MGMT_DATA
+exit
+
+vlan 10
+name SERVER_ZONE
+exit
+
+
+vlan 20
+name FW
+exit
+
+vlan 30
+name HR_DEP
+exit
+
+vlan 40
+name ACCNT_DEP
+exit
+
+
+vlan 50
+name OPS_DEP
+exit
+
+end
+
+*********************************************************************
+
+
+************Switch SWBKP/SWCORE*********
+conf t
+int range g1/0/22-24
+no shutdown
+switchport mode trunk
+end
+
+
+conf t
+int range g1/0/22-24
+channel-group 1 mode active
+channel-protocol lacp
+end
+
+
+
+conf t
+interface range GigabitEthernet1/0/22-24
+  description EtherChannel Link between Core and Backup
+  no shutdown
+  channel-protocol lacp
+  channel-group 1 mode active
+exit
+
+interface Port-channel 1
+  description TRUNK BUNDLE to
+  switchport mode trunk
+end
+
+
+
+
+************************************************
+
+
+
+**************SWCORE************
+
+
+configure terminal
+interface GigabitEthernet1/0/6
+switchport mode trunk
+no shutdown
+end
+
+
+**********************SW-HR***********************
+
+configure terminal
+interface GigabitEthernet1/0/1
+switchport mode trunk
+no shutdown
+end
+
+configure terminal
+hostname SW-HR
+enable secret hrpass
+service password-encryption
+no logging console
+no ip domain-lookup
+line console 0
+password hrpass
+login
+exec-timeout 0 0
+line vty 0 14
+password hrpass
+login
+exec-timeout 0 0
+
+
+
+int vlan 30
+ip address 10.31.30.3 255.255.255.0
+no shut
+end
+
+conf t
+int g1/0/2-5
+switchport mode access
+switchport access vlan 30
+no shut
+end
+
+
+*********************SERVER*********************
+
+DHCP SERVER****
+
+***********SWCORE***********
+
+
+conf t
+
+int g1/0/2
+  description CONNECTION IN SERVER
+  switchport mode access
+  switchport access vlan 10
+  spanning-tree portfast
+end
+
+
+configure terminal
+
+interface vlan 30
+  ip helper-address 10.31.10.11
+exit
+
+
+
+
+**********************ACCOUNTING******************
+
+
+***SW-CORE***
+
+conf t 
+interface GigabitEthernet1/0/7
+description LINK TO ACCT SWITCH
+switchport mode trunk
+no shutdown
+end
+
+conf t
+
+interface vlan 40
+  ip helper-address 10.31.10.11
+end
+
+
+***SW-ACCT***
+configure terminal
+hostname SW-ACCT
+enable secret acctpass
+service password-encryption
+no logging console
+no ip domain-lookup
+line console 0
+password acctpass
+login
+exec-timeout 0 0
+line vty 0 14
+password acctpass
+login
+exec-timeout 0 0
+
+exit
+
+vlan 40
+  name ACCNT
+exit
+
+interface GigabitEthernet1/0/1
+  description LINK TO SWITCH CORE
+  switchport mode trunk
+exit
+
+int vlan 40
+ip address 10.31.40.3 255.255.255.0
+no shut
+end
+
+
+
+
+
+
+********************OPS****************
+
+
+***SW-CORE***
+
+conf t 
+interface GigabitEthernet1/0/8
+description LINK TO OPS SWITCH
+switchport mode trunk
+no shutdown
+end
+
+conf t
+
+interface vlan 50
+  ip helper-address 10.31.10.11
+end
+
+***SW-OPS*****
+
+configure terminal
+hostname SW-OPS
+enable secret opspass
+service password-encryption
+no logging console
+no ip domain-lookup
+line console 0
+password opspass
+login
+exec-timeout 0 0
+line vty 0 14
+password opspass
+login
+exec-timeout 0 0
+
+vlan 50
+  name OPS
+exit
+
+interface GigabitEthernet1/0/1
+  description LINK TO SWITCH CORE
+  switchport mode trunk
+exit
+
+interface range GigabitEthernet1/0/2-20
+  description LINK TO OPS PCs
+  switchport mode access
+  switchport access vlan 50
+  spanning-tree portfast
+end
+
+int vlan 50
+ip address 10.31.50.3 255.255.255.0
+no shut
+end
+
+
+
+
+configure terminal
+interface GigabitEthernet1/0/3
+  switchport mode trunk
+exit
+interface GigabitEthernet1/0/4
+  switchport mode trunk
+end
+
+***************FIREWALL**************
+
+***SWCORE***
+
+conf t
+int g1/0/3
+switchport mode access
+switchport access vlan 20
+no shut
+exit
+
+ip route 0.0.0.0 0.0.0.0 10.31.20.1
+
+end
+
+
+***F-WALL*****
+
+! I-set ang hostname ng firewall
+configure terminal
+hostname F-WALL
+
+! Katumbas ng enable secret fwpass
+enable password fwpass
+
+! Ang ASA ay may built-in na password encryption, kaya hindi na kailangan ang service password-encryption
+! Ang no ip domain-lookup ay hindi rin kailangan sa ASA sa ganitong paraan
+
+! Pag-disable ng console logging
+no logging console
+
+! Configuration para sa Console Port access at timeout (Katumbas ng line console 0)
+console timeout 0
+
+! Configuration para sa SSH/Remote Access (Katumbas ng line vty 0 14 at login)
+username admin password fwpass privilege 15
+aaa authentication ssh console LOCAL
+aaa authentication telnet console LOCAL
+ssh timeout 0
+
+end
+
+
+******F-WALL*********
+
+configure terminal
+hostname F-WALL
+enable password fwpass
+no logging console
+console timeout 0
+username admin password fwpass privilege 15
+aaa authentication ssh console LOCAL
+aaa authentication telnet console LOCAL
+ssh timeout 0
+end
+
+
+configure terminal
+interface GigabitEthernet 1/1
+ no shutdown
+ nameif inside
+ security-level 100
+ ip address 10.31.20.1 255.255.255.0
+exit
+
+route inside 10.31.0.0 255.255.0.0 10.31.20.4
+end
+
+
+*************Router ISP*************
+
+
+*******F-WALL******
+configure terminal
+interface GigabitEthernet 1/2
+ no shutdown
+ nameif outside
+ security-level 0
+ ip address 192.168.100.1 255.255.255.252
+exit
+
+********router*******
+configure terminal
+hostname R-0
+enable secret rpass
+service password-encryption
+no logging console
+no ip domain-lookup
+line console 0
+password rpass
+login
+exec-timeout 0 0
+line vty 0 14
+password rpass
+login
+exec-timeout 0 0
+
+
+
+configure terminal
+interface GigabitEthernet 0/0/0
+ no shutdown
+ ip address 192.168.100.2 255.255.255.252
+exit
+
+
+****F-WALL***
+configure terminal
+
+# HAKBANG 1: Default Route
+route outside 0.0.0.0 0.0.0.0 192.168.100.2
+
+# HAKBANG 2: NAT Configuration
+object network INTERNAL_NETWORKS
+ subnet 10.31.0.0 255.255.0.0
+ nat (inside,outside) dynamic interface
+exit
+
+# HAKBANG 3: ICMP Inspection
+policy-map global_policy
+ class inspection_default
+  inspect icmp
+exit
+
+configure terminal
+
+# 1. Gumawa ng Access List para payagan ang ICMP (Ping) pabalik sa loob
+access-list OUTSIDE_IN extended permit icmp any any
+
+# 2. I-apply ang Access List sa Outside interface
+access-group OUTSIDE_IN in interface outside
+
+end
+
+*******R-0****
+enable
+configure terminal
+ip route 10.31.0.0 255.255.0.0 192.168.100.1
+end
+write memory
+
+
+
+
+
+*********WEB SERBER************
+
+*****R-0****
+configure terminal
+interface GigabitEthernet 0/0/1
+ no shutdown
+ ip address 8.8.8.1 255.255.255.0
+exit
+
+
+
+
+
+
+****************************************************************************************************************
+
+enable
+configure terminal
+
+# Pag-configure sa port papuntang Core Switch (Inside)
+interface GigabitEthernet 1/1
+ no shutdown
+ nameif inside
+ security-level 100
+ ip address 10.31.20.1 255.255.255.0
+exit
+
+# Pag-configure sa port papuntang Router0 (Outside)
+interface GigabitEthernet 1/2
+ no shutdown
+ nameif outside
+ security-level 0
+ ip address 192.168.100.1 255.255.255.252
+exit
+
+# Ruta papunta sa mga Internal VLANs sa loob (via SWCORE)
+route inside 10.31.0.0 255.255.0.0 10.31.20.4
+
+# Default Route papuntang Internet (via Router0)
+route outside 0.0.0.0 0.0.0.0 192.168.100.2
+
+# Configuration para sa NAT (Port Address Translation)
+object network INTERNAL_NETWORKS
+ subnet 10.31.0.0 255.255.0.0
+ nat (inside,outside) dynamic interface
+exit
+
+# Pagpapahintulot sa Ping (ICMP) at Web Traffic (TCP) pabalik sa loob
+access-list OUTSIDE_IN extended permit icmp any any
+access-list OUTSIDE_IN extended permit tcp any any
+access-group OUTSIDE_IN in interface outside
+
+# Pag-on sa HTTP global inspection
+policy-map global_policy
+ class inspection_default
+  inspect http
+exit
+
+# Pag-save ng configuration
+write memory
+
+
+
+ ************************************************************************************
+enable
+configure terminal
+
+# Port papuntang Firewall (Gumamit ng Crossover Cable)
+interface GigabitEthernet0/0/0
+ no shutdown
+ ip address 192.168.100.2 255.255.255.252
+exit
+
+# Port papuntang Web Server
+interface GigabitEthernet0/0/1
+ no shutdown
+ ip address 8.8.8.1 255.255.255.0
+exit
+
+# Static Route pabalik sa mga internal PC sa loob ng kumpanya
+ip route 10.31.0.0 255.255.0.0 192.168.100.1
+
+# Pag-save ng configuration
+write memory
+
+
+
+*********************EXTENDED ACL for blocking *******************
+
+**SWCORE***
+
+nable
+configure terminal
+no ip access-list extended BLOCK_HR_ACCNT
+ip access-list extended BLOCK_HR_ACCNT
+ 1 permit ip any host 10.31.10.11
+
+
+ deny icmp 10.31.30.0 0.0.0.255 10.31.40.0 0.0.0.255
+ deny icmp 10.31.40.0 0.0.0.255 10.31.30.0 0.0.0.255
+
+
+ deny icmp 10.31.30.0 0.0.0.255 10.31.50.0 0.0.0.255
+ deny icmp 10.31.50.0 0.0.0.255 10.31.30.0 0.0.0.255
+
+
+ deny icmp 10.31.40.0 0.0.0.255 10.31.50.0 0.0.0.255
+ deny icmp 10.31.50.0 0.0.0.255 10.31.40.0 0.0.0.255
+
+
+ permit ip any any
+exit
+
+interface vlan 30
+ ip access-group BLOCK_HR_ACCNT in
+exit
+
+interface vlan 40
+ ip access-group BLOCK_HR_ACCNT in
+exit
+
+interface vlan 50
+ ip access-group BLOCK_HR_ACCNT in
+exit
+
+end
+write memory
+
+
+****F-WALL***
+enable
+configure terminal
+access-list OUTSIDE_IN extended permit tcp any any
+policy-map global_policy
+ class inspection_default
+  inspect http
+exit
+
+end
+write memory
+
+
+********************************************************
+
+FTP
+
+from pc:
+command promt
+ftp (IP server)
+pass: cisco
+user: cisco
+put (file name)
+quit
+
+To pc:
+command promt
+ftp (IP server)
+pass: cisco
+user: cisco
+get (file name)
+quit
+
